@@ -1,0 +1,26 @@
+{
+  "name": "chat-rooms",
+  "version": "1.0.0",
+  "description": "Anonymous chat rooms :)",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Madhu0/ChatRooms.git"
+  },
+  "keywords": [
+    "chat",
+    "web",
+    "sockets",
+    "realtime",
+    "chat"
+  ],
+  "author": "Madhusudhan Reddy K",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Madhu0/ChatRooms/issues"
+  },
+  "homepage": "https://github.com/Madhu0/ChatRooms#readme"
+}
