@@ -22,7 +22,7 @@ class MongoDb {
       console.log(error);
       throw error;
     }
-    console.log('Connection Successful');
+    console.log('Connection to DB Successful');
     this.db = db;
     this.connectionStatus = true;
   }
