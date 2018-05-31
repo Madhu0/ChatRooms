@@ -43,34 +43,33 @@ wsRouter.attachServer(wsServer);
 wsRouter.mount('/connect', null, (request) => {
   // console.log('In mount', request.httpRequest.query, request.httpRequest.params);
   const queryObj = getQueryParamsFromUrl(request.httpRequest.url);
-  console.log('query object', queryObj);
-  groups
-
+  
   var cookies = [];
-
   const connection = request.accept(request.origin, cookies);
+  
+  console.log('connection', connection);
+  if (queryObj.id) {
+    if (!groups[queryObj.id]) {
+      groups[queryObj.id] = [];
+    }
+    groups[queryObj.id].push(connection);
+  }
 
   connection.on('message', (message) => {
-    console.log('in message', message);
+    groups[queryObj.id].forEach((con, i) => {
+      if (con !== connection && con.connected) {
+        con.send(message.utf8Data);
+      } else if (!con.connected) {
+        groups[queryObj.id].splice(i, 1);
+      }
+    })
+    // console.log('in message', message, currentGroup);
   });
 
   connection.on('close', (connection) => {
     console.log('on close', connection);
   });
 })
-
-
-// wsServer.on('request', (request) => {
-//   const connection = request.accept(null, request.origin);
-  
-//   connection.on('message', (message) => {
-//     console.log(message);
-//   });
-
-//   connection.on('close', (connection) => {
-//     console.log(connection);
-//   });
-// });
 
 var MongoDb = require('./src/mongo').MongoDb;
 
