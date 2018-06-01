@@ -1,4 +1,5 @@
-var http = require('http');
+var express = require('express');
+var bodyParser = require('body-parser');
 
 var WebSocketServer = require('websocket').server;
 var WebSocketRouter = require('websocket').router;
@@ -8,8 +9,23 @@ const groups = {
   3456: [],
 }
 
-const server = http.createServer(() => {
-  console.log(arguments);
+const app = express();
+
+app.use(bodyParser.json());
+
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/test/index.html');
+})
+
+app.get('/static/:fileName', (req, res) => {
+  const fileName = req.params.fileName;
+
+  res.sendFile(__dirname + '/test/' + fileName);
+})
+
+app.post('/signup', (req, res) => {
+  //TODO: Sign up
+  res.send('Lol')
 });
 
 const getQueryParamsFromUrl = (url) => {
@@ -30,7 +46,7 @@ const getQueryParamsFromUrl = (url) => {
   return queryObj;
 }
 
-server.listen(9000);
+const server = app.listen(9000);
 console.log('Listening on 9000');
 
 wsServer = new WebSocketServer({
