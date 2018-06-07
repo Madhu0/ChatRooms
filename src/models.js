@@ -8,8 +8,6 @@ class User {
     } else {
       // create a new id
     }
-
-    this.get = this.get.bind(this)
   }
 
   get(key) {
@@ -26,7 +24,6 @@ class Group {
     } else {
       // create new id
     }
-    this.get = this.get.bind(this);
   }
 
   get(key) {

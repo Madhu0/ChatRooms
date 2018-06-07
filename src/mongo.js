@@ -15,6 +15,27 @@ class MongoDb {
       this.handleConnection(error, db);
       onConnection(error, db);
     });
+    this.subscribers = {};
+  }
+
+  subscribeToConnectionStatusChange(callback) {
+    const id = (new Date()).getTime() + '';
+    this.subscribers[id] = callback;
+    if (this.connectionStatus) {
+      callback('connected');
+    }
+    return id;
+  }
+
+  unSubscribe(id) {
+    delete this.subscribers[id];
+    return true;
+  }
+
+  callSubscribers(status) {
+    Object.keys(this.subscribers).forEach((key, index) => {
+      this.subscribers[key](status);
+    })
   }
   
   handleConnection(error, db){
@@ -23,8 +44,9 @@ class MongoDb {
       throw error;
     }
     console.log('Connection to DB Successful');
-    this.db = db;
+    this.db = db.db('test');
     this.connectionStatus = true;
+    this.callSubscribers('connected');
   }
   
   getConnectionStatus(){
@@ -36,8 +58,10 @@ class MongoDb {
   }
 
   getCollection(collectionName){
-    return db.collection(collectionName);
+    return this.db.collection(collectionName);
   }
 }
 
-module.exports = { MongoDb };
+const mongoDbObj = new MongoDb();
+
+module.exports = mongoDbObj;

@@ -1,94 +1,100 @@
-var express = require('express');
-var bodyParser = require('body-parser');
+const MongoDbObj = require('./src/mongo');
 
-var WebSocketServer = require('websocket').server;
-var WebSocketRouter = require('websocket').router;
+const initialize = () => {
 
-const groups = {
-  1234: [],
-  3456: [],
-}
+  var express = require('express');
+  var bodyParser = require('body-parser');
 
-const app = express();
+  var WebSocketServer = require('websocket').server;
+  var WebSocketRouter = require('websocket').router;
 
-app.use(bodyParser.json());
+  const UserController = require('./src/controllers/user');
+  
+  const groups = {
+    1234: [],
+    3456: [],
+  }
 
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/test/index.html');
-})
+  const app = express();
 
-app.get('/static/:fileName', (req, res) => {
-  const fileName = req.params.fileName;
+  app.use(bodyParser.json());
 
-  res.sendFile(__dirname + '/test/' + fileName);
-})
+  app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/test/index.html');
+  })
 
-app.post('/signup', (req, res) => {
-  //TODO: Sign up
-  res.send('Lol')
-});
+  app.get('/static/:fileName', (req, res) => {
+    const fileName = req.params.fileName;
 
-const getQueryParamsFromUrl = (url) => {
-  const queryObj = {};
-  const urlParts = url.split('?');
-  if (urlParts.length <= 1) {
+    res.sendFile(__dirname + '/test/' + fileName);
+  })
+
+  app.post('/signup', (req, res) => {
+    //TODO: Sign up
+    (new UserController(req, res)).createUser();
+    // res.send('Lol')
+  });
+
+  const getQueryParamsFromUrl = (url) => {
+    const queryObj = {};
+    const urlParts = url.split('?');
+    if (urlParts.length <= 1) {
+      return queryObj;
+    }
+    
+    const queryString =  decodeURIComponent(urlParts[1]);
+    queryString.split('&').forEach((queryPart, index) => {
+      const [key, value] = queryPart.split('=');
+      if (key && value) {
+        queryObj[key] = value;
+      }
+    });
+
     return queryObj;
   }
-  
-  const queryString =  decodeURIComponent(urlParts[1]);
-  queryString.split('&').forEach((queryPart, index) => {
-    const [key, value] = queryPart.split('=');
-    if (key && value) {
-      queryObj[key] = value;
-    }
+
+  const server = app.listen(9000);
+  console.log('Listening on 9000');
+
+  wsServer = new WebSocketServer({
+    httpServer: server
   });
 
-  return queryObj;
+  const wsRouter = new WebSocketRouter();
+  wsRouter.attachServer(wsServer);
+
+  wsRouter.mount('/connect', null, (request) => {
+    // console.log('In mount', request.httpRequest.query, request.httpRequest.params);
+    const queryObj = getQueryParamsFromUrl(request.httpRequest.url);
+    
+    var cookies = [];
+    const connection = request.accept(request.origin, cookies);
+    
+    console.log('connection', connection);
+    if (queryObj.id) {
+      if (!groups[queryObj.id]) {
+        groups[queryObj.id] = [];
+      }
+      groups[queryObj.id].push(connection);
+    }
+
+    connection.on('message', (message) => {
+      groups[queryObj.id].forEach((con, i) => {
+        if (con !== connection && con.connected) {
+          con.send(message.utf8Data);
+        } else if (!con.connected) {
+          groups[queryObj.id].splice(i, 1);
+        }
+      })
+      // console.log('in message', message, currentGroup);
+    });
+
+    connection.on('close', (connection) => {
+      console.log('on close', connection);
+    });
+  })
+
+  MongoDbObj.unSubscribe(unSubId);
 }
 
-const server = app.listen(9000);
-console.log('Listening on 9000');
-
-wsServer = new WebSocketServer({
-  httpServer: server
-});
-
-const wsRouter = new WebSocketRouter();
-wsRouter.attachServer(wsServer);
-
-wsRouter.mount('/connect', null, (request) => {
-  // console.log('In mount', request.httpRequest.query, request.httpRequest.params);
-  const queryObj = getQueryParamsFromUrl(request.httpRequest.url);
-  
-  var cookies = [];
-  const connection = request.accept(request.origin, cookies);
-  
-  console.log('connection', connection);
-  if (queryObj.id) {
-    if (!groups[queryObj.id]) {
-      groups[queryObj.id] = [];
-    }
-    groups[queryObj.id].push(connection);
-  }
-
-  connection.on('message', (message) => {
-    groups[queryObj.id].forEach((con, i) => {
-      if (con !== connection && con.connected) {
-        con.send(message.utf8Data);
-      } else if (!con.connected) {
-        groups[queryObj.id].splice(i, 1);
-      }
-    })
-    // console.log('in message', message, currentGroup);
-  });
-
-  connection.on('close', (connection) => {
-    console.log('on close', connection);
-  });
-})
-
-var MongoDb = require('./src/mongo').MongoDb;
-
-console.log(MongoDb);
-
-MongoDbObj = new MongoDb();
+const unSubId = MongoDbObj.subscribeToConnectionStatusChange(initialize);
