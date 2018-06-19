@@ -40,10 +40,10 @@ class MongoDb {
   
   handleConnection(error, db){
     if (error) {
-      console.log(error);
+      // console.log(error);
       throw error;
     }
-    console.log('Connection to DB Successful');
+    // console.log('Connection to DB Successful');
     this.db = db.db('test');
     this.connectionStatus = true;
     this.callSubscribers('connected');

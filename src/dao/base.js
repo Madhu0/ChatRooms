@@ -10,8 +10,13 @@ class BaseDao {
     this.collection.insertOne(obj, callback);
   }
 
-  find(query) {
-    return this.collection.find(query);
+  find(query, callback) {
+    const returnObj = this.collection.find(query);
+    if (callback && returnObj) {
+      returnObj.toArray((err, res) => {
+        callback(res, err);
+      })
+    }
   }
 }
 

@@ -7,7 +7,7 @@ class BaseController {
   sendAsJson(resp, status) {
     this.res.setHeader('Content-Type', 'application/json');
 
-    this.res.status = status;
+    this.res.status(status);
     this.res.write(JSON.stringify(resp));
     this.res.end();
   }

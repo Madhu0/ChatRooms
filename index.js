@@ -4,11 +4,10 @@ const initialize = () => {
 
   var express = require('express');
   var bodyParser = require('body-parser');
-
   var WebSocketServer = require('websocket').server;
   var WebSocketRouter = require('websocket').router;
-
   const UserController = require('./src/controllers/user');
+  const getQueryParamsFromUrl = require('./src/helpers').getQueryParamsFromUrl;
   
   const groups = {
     1234: [],
@@ -35,23 +34,11 @@ const initialize = () => {
     // res.send('Lol')
   });
 
-  const getQueryParamsFromUrl = (url) => {
-    const queryObj = {};
-    const urlParts = url.split('?');
-    if (urlParts.length <= 1) {
-      return queryObj;
-    }
-    
-    const queryString =  decodeURIComponent(urlParts[1]);
-    queryString.split('&').forEach((queryPart, index) => {
-      const [key, value] = queryPart.split('=');
-      if (key && value) {
-        queryObj[key] = value;
-      }
-    });
-
-    return queryObj;
-  }
+  app.get('/get-user', (req, res) => {
+    //TODO: Sign up
+    (new UserController(req, res)).getUser();
+    // res.send('Lol')
+  });
 
   const server = app.listen(9000);
   console.log('Listening on 9000');
@@ -70,7 +57,7 @@ const initialize = () => {
     var cookies = [];
     const connection = request.accept(request.origin, cookies);
     
-    console.log('connection', connection);
+    // console.log('connection', connection);
     if (queryObj.id) {
       if (!groups[queryObj.id]) {
         groups[queryObj.id] = [];
@@ -90,7 +77,7 @@ const initialize = () => {
     });
 
     connection.on('close', (connection) => {
-      console.log('on close', connection);
+      // console.log('on close', connection);
     });
   })
 

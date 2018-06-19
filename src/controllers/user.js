@@ -2,6 +2,7 @@ const BaseController = require('./base');
 const UserModel = require('../models').User;
 const UserDao = require('../dao/user');
 const ApiError = require('../error');
+const getQueryParamsFromUrl = require('../helpers').getQueryParamsFromUrl;
 
 class UserController extends BaseController {
   constructor(req, res) {
@@ -17,11 +18,27 @@ class UserController extends BaseController {
         if (err) {
           throw new ApiError(err);
         }
+        console.log(res);
+        this.sendAsJson(newUser, 200);
       });
-      const user = this.find(newUser);
-      this.sendAsJson(user, 200);
+      // const user = this.getUser(newUser);
     } catch (err) {
-      this.sendAsJson(err, 401);
+      console.log(err);
+      this.sendAsJson(err, 400);
+    }
+  }
+
+  getUser() {
+    try {
+      const queryObj = getQueryParamsFromUrl(this.req.url);
+      UserDao.getUser(queryObj, (resp, err) => {
+        if (err) throw err;
+        console.log('in getUser', resp);
+        this.sendAsJson(resp, 200);
+      });
+    } catch(exec) {
+      console.log(exec);
+      this.sendAsJson(exec, 500);
     }
   }
 }
