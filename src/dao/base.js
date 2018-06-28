@@ -14,7 +14,7 @@ class BaseDao {
     const returnObj = this.collection.find(query);
     if (callback && returnObj) {
       returnObj.toArray((err, res) => {
-        callback(res, err);
+        callback(err, res);
       })
     }
   }

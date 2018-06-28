@@ -13,33 +13,24 @@ class UserController extends BaseController {
     // console.log('body', this.req.body, typeof this.req.body);
     // const userDetails = JSON.parse(this.req.body);
     const newUser = new UserModel(this.req.body);
-    try {
-      UserDao.createUser(newUser, (err, res) => {
-        if (err) {
-          throw new ApiError(err);
-        }
-        console.log(res);
-        this.sendAsJson(newUser, 200);
-      });
-      // const user = this.getUser(newUser);
-    } catch (err) {
-      console.log(err);
-      this.sendAsJson(err, 400);
-    }
+    UserDao.createUser(newUser, (err, res) => {
+      if (err) {
+        this.sendAsJson(new ApiError(err), 400);
+        return;
+      }
+      this.sendAsJson(newUser, 200);
+    });
   }
 
   getUser() {
-    try {
-      const queryObj = getQueryParamsFromUrl(this.req.url);
-      UserDao.getUser(queryObj, (resp, err) => {
-        if (err) throw err;
-        console.log('in getUser', resp);
-        this.sendAsJson(resp, 200);
-      });
-    } catch(exec) {
-      console.log(exec);
-      this.sendAsJson(exec, 500);
-    }
+    const queryObj = getQueryParamsFromUrl(this.req.url);
+    UserDao.getUser(queryObj, (err, res) => {
+      if (err) {
+        this.sendAsJson(new ApiError(err), 400);
+        return;
+      };
+      this.sendAsJson(res, 200);
+    });
   }
 }
 

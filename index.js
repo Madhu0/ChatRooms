@@ -35,7 +35,7 @@ const initialize = () => {
   });
 
   app.get('/get-user', (req, res) => {
-    //TODO: Sign up
+    //TODO: Get user
     (new UserController(req, res)).getUser();
     // res.send('Lol')
   });

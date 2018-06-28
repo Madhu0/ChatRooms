@@ -1,6 +1,4 @@
-const User = require('../models').User;
 const BaseDao = require('./base');
-const ApiError = require('../error');
 
 class UserDao extends BaseDao {
   constructor() {
@@ -8,23 +6,19 @@ class UserDao extends BaseDao {
   }
 
   createUser(userDetails, callback) {
-    const user = this.find({ email: userDetails.email }, (res, err) => {
-      console.log('in create user', res, err);
+    const user = this.find({ email: userDetails.email }, (err, res) => {
       if (err) {
-        throw err;
+        callback(err, null)
       }
       
       if (res.length === 0) {
         this.insert(userDetails, (err, res) => {
           if (err) {
-            console.log('Error in creation');
-            throw err;
+            callback(err, null);
           }
-          callback(err, res);
-          console.log('User created successfully');
         });
       } else {
-        throw new ApiError({ type: 'EMAIL_ALREADY_EXIST', code: 1, message: 'Email already regitered with user' });
+        callback({ type: 'EMAIL_ALREADY_EXIST', code: 1, message: 'Email already regitered with user' }, null);
       }
     });
   }
@@ -36,13 +30,14 @@ class UserDao extends BaseDao {
   }
 
   getUser(query, callback) {
-    try{
-      const user = this.find(query, callback);
-      return user;
-    } catch (e) {
-      // log exception
-      throw e;
-    }
+    const user = this.find(query, (err, res) => {
+      console.log(res, err);
+      if (err || res.length !== 0) {
+        callback(err, res);
+      } else {
+        callback({ type: 'EMAIL_DOESN\'T_EXIST', code: 1, message: 'User not found with given emailId' })
+      }
+    });
   }
 }
 
